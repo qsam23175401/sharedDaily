@@ -45,12 +45,7 @@
                 <input type="month" id="filter-month" class="border p-2 rounded flex-1">
                 <select id="filter-mood" class="border p-2 rounded flex-1">
                     <option value="">所有心情顏色</option>
-                    <option value="#ffadad">紅色 (生氣/熱情)</option>
-                    <option value="#ffd6a5">橘色 (開心)</option>
-                    <option value="#fdffb6">黃色 (平靜)</option>
-                    <option value="#caffbf">綠色 (放鬆)</option>
-                    <option value="#9bf6ff">藍色 (憂鬱/冷靜)</option>
-                    <option value="#bdb2ff">紫色 (浪漫/神祕)</option>
+                    <!-- 選項將由 JS 動態生成以套用使用者設定 -->
                 </select>
             </div>
             <div id="diary-container" class="space-y-4">
@@ -136,9 +131,62 @@
                     </div>
                     <button onclick="saveApiKey()"
                         class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
-                        儲存設定
+                        儲存 API 金鑰設定
                     </button>
                 </div>
+
+                <!-- 設定模式：心情標籤 -->
+                <div class="border-t pt-6 mt-6 border-gray-100">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i
+                            class="fas fa-palette text-indigo-500"></i>
+                        心情標籤設定</h2>
+                    <p class="text-gray-600 text-sm mb-4">
+                        自訂各顏色代表的心情（將顯示於瀏覽日記的選項中，留空即恢復預設）。
+                    </p>
+                    <div class="space-y-3" id="mood-label-inputs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #ffadad"></div>
+                            <input type="text" data-color="#ffadad"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：紅色 (生氣/熱情)">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #ffd6a5"></div>
+                            <input type="text" data-color="#ffd6a5"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：橘色 (開心)">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #fdffb6"></div>
+                            <input type="text" data-color="#fdffb6"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：黃色 (平靜)">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #caffbf"></div>
+                            <input type="text" data-color="#caffbf"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：綠色 (放鬆)">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #9bf6ff"></div>
+                            <input type="text" data-color="#9bf6ff"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：藍色 (憂鬱/冷靜)">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #bdb2ff"></div>
+                            <input type="text" data-color="#bdb2ff"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="例如：紫色 (浪漫/神祕)">
+                        </div>
+                    </div>
+                    <button onclick="saveMoodLabels()"
+                        class="w-full bg-indigo-600 text-white py-3 mt-4 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                        儲存心情標籤
+                    </button>
+                </div>
+
             </div>
         </section>
 
@@ -152,7 +200,30 @@
         let entries = [];
         const diaryData = JSON.parse(localStorage.getItem('my_diaries') || '{}');
 
-        document.getElementById('diary-date').valueAsDate = new Date();
+        // 心情標籤設定
+        const defaultMoodLabels = {
+            "#ffadad": "紅色 (生氣/熱情)",
+            "#ffd6a5": "橘色 (開心)",
+            "#fdffb6": "黃色 (平靜)",
+            "#caffbf": "綠色 (放鬆)",
+            "#9bf6ff": "藍色 (憂鬱/冷靜)",
+            "#bdb2ff": "紫色 (浪漫/神祕)"
+        };
+        let userMoodLabels = JSON.parse(localStorage.getItem('mood_labels')) || {};
+        for (let key in defaultMoodLabels) {
+            if (!userMoodLabels[key]) userMoodLabels[key] = defaultMoodLabels[key];
+        }
+
+        // 初始化日期 (Android WebView 可能無法正確解析 valueAsDate，因此改由字串手動指定日期以確保有預設值)
+        const initDate = new Date();
+        const yyyy = initDate.getFullYear();
+        const mm = String(initDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(initDate.getDate()).padStart(2, '0');
+
+        document.getElementById('diary-date').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('filter-month').value = `${yyyy}-${mm}`;
+
+        renderMoodOptions();
 
         // 心情選擇器邏輯
         document.querySelectorAll('.mood-dot').forEach(dot => {
@@ -172,7 +243,42 @@
             if (view === 'list') renderDiaryList();
             if (view === 'settings') {
                 document.getElementById('api-key-input').value = API_KEY;
+                // 載入自訂的心情標籤至設定介面中
+                document.querySelectorAll('#mood-label-inputs input').forEach(input => {
+                    input.value = userMoodLabels[input.dataset.color];
+                });
             }
+        }
+
+        // --- 心情標籤功能 ---
+        function renderMoodOptions() {
+            const select = document.getElementById('filter-mood');
+            select.innerHTML = '<option value="">所有心情顏色</option>';
+            const colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#bdb2ff'];
+            colors.forEach(color => {
+                const label = userMoodLabels[color];
+                select.innerHTML += `<option value="${color}">${label}</option>`;
+            });
+            // 更新寫作區的心情圓點提示（hover即可顯示）
+            document.querySelectorAll('.mood-dot').forEach(dot => {
+                dot.title = userMoodLabels[dot.dataset.color];
+            });
+        }
+
+        function saveMoodLabels() {
+            const inputs = document.querySelectorAll('#mood-label-inputs input');
+            inputs.forEach(input => {
+                const color = input.dataset.color;
+                if (input.value.trim()) {
+                    userMoodLabels[color] = input.value.trim();
+                } else {
+                    userMoodLabels[color] = defaultMoodLabels[color];
+                }
+            });
+            localStorage.setItem('mood_labels', JSON.stringify(userMoodLabels));
+            renderMoodOptions();
+            alert("心情標籤已儲存！");
+            switchView('write');
         }
 
         // --- AI 功能：Gemini API ---
