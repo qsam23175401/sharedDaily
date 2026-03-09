@@ -207,10 +207,10 @@ async function startVoice() {
             reader.onloadend = async () => {
                 const base64data = reader.result.split(',')[1];
 
-                const prompt = `請聆聽這段錄音，並將其中的口述日記內容解析為 JSON 格式。
-需要包含 "time_point" (時間點，如：剛才、上午、剛剛開會時) 和 "content" (具體日記內容，請將語音內容轉為通順的文字)。
-如果沒有明確提到時間，請預設使用 "剛才" 作為 time_point。
-格式必須是嚴格的 JSON：
+                const prompt = `請聆聽這段錄音，並將其中的口述內容理解後，輸出為嚴格 JSON 格式。
+需要包含 "time_point" (發生的時間，如：剛才、上午、剛剛開會時) 和 "content" (具體日記內容，請將語音內容轉為通順的文字)。
+如果沒有明確提到時間，請填入空字串 "" 作為 time_point。
+格式必須是嚴格的 JSON，不要有額外的文字：
 {"time_point": "上午", "content": "因為塞車而遲到，心情不好..."}`;
 
                 try {
@@ -223,7 +223,7 @@ async function startVoice() {
                         const cleanJson = aiResult.replace(/```json|```/g, '');
                         try {
                             const entry = JSON.parse(cleanJson);
-                            addEntryToUI(entry.time_point || '剛才', entry.content);
+                            addEntryToUI(entry.time_point, entry.content);
                         } catch (parseErr) {
                             console.error("JSON 解析失敗", parseErr, cleanJson);
                             alert("AI 回傳的格式不正確，無法解析為日誌。");
@@ -248,7 +248,7 @@ async function startVoice() {
 
 function resetVoiceBtn() {
     const btn = document.getElementById('voice-btn');
-    btn.innerHTML = '<i class="fas fa-microphone"></i> 錄音解析';
+    btn.innerHTML = '<i class="fas fa-microphone"></i> 語音輸入';
     btn.classList.replace('bg-red-400', 'bg-red-500'); // 還原按鈕顏色
     isRecording = false;
     mediaRecorder = null;
@@ -271,9 +271,12 @@ function addManualEntry() {
     timeInput.value = ''; // 記錄完畢後將時間點重置，方便連續輸入
 }
 
+//不直接加上去，只是填入就好
 function addEntryToUI(time, content) {
-    entries.push({ time, content });
-    renderEntries();
+    document.getElementById('manual-time').value = time;
+    document.getElementById('manual-input').value = content;
+    // entries.push({ time, content });
+    // renderEntries();
 }
 
 function renderEntries() {
@@ -307,7 +310,7 @@ async function generateSummary() {
     btn.innerText = "生成中...";
 
     const logsText = entries.map(e => `${e.time}: ${e.content}`).join('\n');
-    const prompt = `根據以下的小記內容，寫一段溫馨且精簡的當日總結（約50字），並在最後給予一句鼓勵的話：\n${logsText}`;
+    const prompt = `根據以下的小記內容，以第一人稱寫一段中立但不冗長的當日總結（不超過150字），並在最後加入自我鼓勵的話：\n${logsText}`;
 
     const summary = await callGemini(prompt);
     if (summary) {

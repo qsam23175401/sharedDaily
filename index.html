@@ -54,7 +54,7 @@
         <!-- 離線提示 Banner -->
         <div id="offline-banner"
             class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm font-bold flex items-center justify-center gap-2">
-            <i class="fas fa-wifi"></i> 目目前處於離線狀態，AI 語音與總結功能將暫停服務
+            <i class="fas fa-wifi"></i> 目前處於離線狀態，AI 語音與總結功能將暫停服務
         </div>
 
         <!-- 檢視模式：讀取日記 -->
@@ -99,16 +99,16 @@
                     <div class="flex flex-col sm:flex-row gap-2 mb-3">
                         <button onclick="startVoice()" id="voice-btn"
                             class="bg-red-500 text-white px-4 py-2 rounded-lg flex justify-center items-center gap-2 whitespace-nowrap">
-                            <i class="fas fa-microphone"></i> 錄音解析
+                            <i class="fas fa-microphone"></i> 語音輸入
                         </button>
                         <div class="flex flex-1 gap-2">
-                            <input type="text" id="manual-time" value="" placeholder="時間點"
+                            <input type="text" id="manual-time" value="" placeholder="時間"
                                 class="border px-3 py-2 rounded-lg w-24 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center">
                             <button onclick="addManualEntry()"
-                                class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex-1 hover:bg-gray-300 transition font-medium whitespace-nowrap">手寫加入</button>
+                                class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex-1 hover:bg-gray-300 transition font-medium whitespace-nowrap">加入小記</button>
                         </div>
                     </div>
-                    <textarea id="manual-input" placeholder="今天發生了什麼事？(或是按下錄音用說的...)"
+                    <textarea id="manual-input" placeholder="發生了什麼事？(或是按下錄音用說的...)"
                         class="w-full border p-3 rounded-lg h-24 focus:ring-2 focus:ring-indigo-300 outline-none"></textarea>
                 </div>
             </div>
@@ -119,7 +119,7 @@
                     <h3 class="font-bold text-indigo-800">當日總結</h3>
                     <button onclick="generateSummary()"
                         class="text-sm bg-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-300">
-                        <i class="fas fa-magic"></i> AI 自動生成
+                        <i class="fas fa-magic"></i> AI 總結
                     </button>
                 </div>
                 <textarea id="daily-summary" placeholder="這一天過得如何？寫點給自己的話吧..."
