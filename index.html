@@ -121,9 +121,9 @@
                         </button>
                         <div class="flex flex-1 gap-2">
                             <input type="text" id="manual-time" value="" placeholder="時間"
-                                class="border px-3 py-2 rounded-lg w-24 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center">
+                                class="border px-3 py-2 rounded-lg w-20 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center shrink-0">
                             <button onclick="addManualEntry()"
-                                class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex-1 hover:bg-gray-300 transition font-medium whitespace-nowrap">加入小記</button>
+                                class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex-1 hover:bg-gray-300 transition font-medium whitespace-nowrap min-w-0">加入小記</button>
                         </div>
                     </div>
                     <textarea id="manual-input" placeholder="發生了什麼事？(或是按下錄音用說的...)"
@@ -156,8 +156,8 @@
                 <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-key text-indigo-500"></i>
                     API 金鑰設定</h2>
                 <p class="text-gray-600 text-sm mb-4">
-                    為了使用語音解析與自動總結功能，您需要填寫自己的 Google Gemini API Key。<br>
-                    <span class="text-red-500 font-bold">此金鑰僅會保存在您當前裝置的瀏覽器中 (localStorage)，不會回傳至其他伺服器，因此較為安全。</span>
+                    請填寫 Google Gemini API Key，即可使用語音輸入與自動總結功能。<br>
+                    <span class="text-red-500 font-bold">此金鑰僅會保存在您當前裝置的瀏覽器中 (localStorage)，不會傳至其他伺服器。</span>
                 </p>
                 <div class="space-y-4">
                     <div>
@@ -228,6 +228,39 @@
                         class="w-full bg-indigo-600 text-white py-3 mt-4 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
                         儲存心情標籤
                     </button>
+                </div>
+
+                <!-- 如何取得 API Key 指南 -->
+                <div class="border-t pt-6 mt-6 border-gray-100">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i
+                            class="fas fa-question-circle text-indigo-500"></i>
+                        如何取得 Gemini API Key?</h2>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                        <li>前往 Google AI Studio</li>
+                        <li>使用您的 Google 帳號登入</li>
+                        <li>左下角 Get API key</li>
+                        <li>點擊<b> Create API key </b>按鈕</li>
+                        <li>隨意創建一個專案即可生成API Key</li>
+                        <li>複製後請妥善保管，不要洩漏給他人</li>
+                    </ol>
+                </div>
+
+                <!-- 作者的話與版本號 -->
+                <div class="border-t pt-6 mt-6 border-gray-100 text-center">
+                    <h2 class="text-xl font-bold mb-2 flex items-center justify-center gap-2"><i
+                            class="fas fa-heart text-red-500"></i>
+                        作者的話</h2>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4 break-words overflow-hidden">
+                        感謝您使用這款心情日記本！<br>
+                        希望能讓您記錄生活變得更輕鬆、也更溫暖。<br>
+                        歡迎分享並加入主畫面。<br>
+                        網址：https://qsam23175401.github.io/sharedDaily/<br>
+                        Android：瀏覽器右上角 → 加入主畫面 → 安裝<br>
+                        IOS：以 Safari 開啟 → 分享 → 加入主畫面
+                    </p>
+                    <div class="text-gray-400 text-xs mt-4">
+                        Version 1.0.3
+                    </div>
                 </div>
 
             </div>
