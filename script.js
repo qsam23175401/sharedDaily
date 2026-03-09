@@ -283,6 +283,7 @@ function saveApiKey() {
     if (key) {
         API_KEY = key;
         localStorage.setItem('gemini_api_key', key);
+        document.getElementById('api-key-input').value = '';
         alert("API Key 解析成功，設定已儲存！");
         switchView('write'); // 儲存後導回寫日記模式
     } else {
