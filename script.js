@@ -169,13 +169,13 @@ async function startVoice() {
             globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         }
 
+        isRecording = true;
         // 優先嘗試使用 webm 格式，因 Gemini 支援良好；若不支援（如 Safari）則不指定讓瀏覽器決定
         const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
         mediaRecorder = new MediaRecorder(globalStream, mimeType ? { mimeType } : undefined);
         audioChunks = [];
 
         mediaRecorder.onstart = () => {
-            isRecording = true;
             btn.innerHTML = '<i class="fas fa-stop-circle"></i> 停止錄音';
             btn.classList.replace('bg-red-500', 'bg-red-400');
         };
@@ -303,13 +303,13 @@ function deleteEntry(index) {
 }
 
 // --- 生成總結 ---
-async function generateSummary() {
+async function generateSummary(e) {
     if (!navigator.onLine) {
         alert("目前處於離線狀態，無法使用 AI 自動總結功能！請確認網路連線。");
         return;
     }
     if (entries.length === 0) return alert("請先寫一些小記喔！");
-    const btn = event.target;
+    const btn = e.target;
     btn.innerText = "生成中...";
 
     const logsText = entries.map(e => `${e.time}: ${e.content}`).join('\n');
