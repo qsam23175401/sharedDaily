@@ -210,8 +210,8 @@ async function startVoice() {
             reader.onloadend = async () => {
                 const base64data = reader.result.split(',')[1];
 
-                const prompt = `請聆聽這段錄音，並將其中的口述內容理解後，輸出為嚴格 JSON 格式。
-需要包含 "time_point" (發生的時間，如：剛才、上午、剛剛開會時) 和 "content" (具體日記內容，請將語音內容轉為通順的文字)。
+                const prompt = `請聆聽這段錄音，並將其中的口述內容理解後，解析輸出為嚴格 JSON 格式。
+需要包含 "time_point" (簡短描述時間，如：剛才、上午、下午、晚上、剛剛開會時) 和 "content" (整理除去時間的口述內容，盡量完整且通順)。
 如果沒有明確提到時間，請填入空字串 "" 作為 time_point。
 格式必須是嚴格的 JSON，不要有額外的文字：
 {"time_point": "上午", "content": "因為塞車而遲到，心情不好..."}`;
