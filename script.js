@@ -137,6 +137,11 @@ let recognition = null;
 let isRecording = false;
 
 function startVoice() {
+    if (!navigator.onLine) {
+        alert("目前處於離線狀態，無法使用語音解析功能！請確認網路連線。");
+        return;
+    }
+
     const btn = document.getElementById('voice-btn');
 
     // 若正在錄音中，則停止錄音
@@ -254,6 +259,10 @@ function renderEntries() {
 
 // --- 生成總結 ---
 async function generateSummary() {
+    if (!navigator.onLine) {
+        alert("目前處於離線狀態，無法使用 AI 自動總結功能！請確認網路連線。");
+        return;
+    }
     if (entries.length === 0) return alert("請先寫一些小記喔！");
     const btn = event.target;
     btn.innerText = "生成中...";
@@ -348,3 +357,22 @@ function loadDiaryToEdit(date) {
 // 監聽過濾器
 document.getElementById('filter-month').addEventListener('change', renderDiaryList);
 document.getElementById('filter-mood').addEventListener('change', renderDiaryList);
+
+// --- 離線狀態監聽 ---
+function updateNetworkStatus() {
+    const banner = document.getElementById('offline-banner');
+    const voiceBtn = document.getElementById('voice-btn');
+
+    if (navigator.onLine) {
+        if (banner) banner.classList.add('hidden');
+        if (voiceBtn) voiceBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        if (banner) banner.classList.remove('hidden');
+        if (voiceBtn) voiceBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+// 初始化檢查網路狀態
+updateNetworkStatus();

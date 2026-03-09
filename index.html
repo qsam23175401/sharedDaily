@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>心情日記本</title>
+
+    <!-- PWA 標籤設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5"> <!-- 為了配合 Tailwind 的 indigo-600 -->
+    <link rel="apple-touch-icon" href="dailyIcon.webp"> <!-- iOS 專用 Icon -->
+    <link rel="icon" href="dailyIcon.webp"> <!-- 網站 favicon -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -43,6 +50,12 @@
     </nav>
 
     <main class="container mx-auto p-4 max-w-2xl">
+
+        <!-- 離線提示 Banner -->
+        <div id="offline-banner"
+            class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm font-bold flex items-center justify-center gap-2">
+            <i class="fas fa-wifi"></i> 目目前處於離線狀態，AI 語音與總結功能將暫停服務
+        </div>
 
         <!-- 檢視模式：讀取日記 -->
         <section id="view-list" class="hidden">
@@ -197,6 +210,20 @@
 
     </main>
 
+    <!-- 註冊 Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker 註冊成功，範圍: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker 註冊失敗: ', err);
+                    });
+            });
+        }
+    </script>
     <script src="script.js" defer></script>
 </body>
 
