@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>心情日記本</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,11 +14,16 @@
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
+            touch-action: manipulation;
         }
 
         .mood-dot.active {
             border-color: black;
             transform: scale(1.2);
+        }
+
+        button {
+            touch-action: manipulation;
         }
     </style>
 </head>
@@ -227,11 +232,14 @@
 
         // 心情選擇器邏輯
         document.querySelectorAll('.mood-dot').forEach(dot => {
-            dot.addEventListener('click', () => {
+            const handleMoodClick = (e) => {
+                if (e.type === 'touchstart') e.preventDefault(); // 防止雙重觸發
                 document.querySelectorAll('.mood-dot').forEach(d => d.classList.remove('active'));
                 dot.classList.add('active');
                 currentMood = dot.dataset.color;
-            });
+            };
+            dot.addEventListener('click', handleMoodClick);
+            dot.addEventListener('touchstart', handleMoodClick, { passive: false });
         });
 
         // --- 切換視圖 ---
@@ -380,7 +388,10 @@
             const time = timeInput.value.trim() || '';
             const text = document.getElementById('manual-input').value;
 
-            if (!text) return;
+            if (!text) {
+                alert("請先輸入日記內容喔！");
+                return;
+            }
 
             addEntryToUI(time, text);
             document.getElementById('manual-input').value = '';
