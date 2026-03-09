@@ -90,22 +90,32 @@ function saveMoodLabels() {
 }
 
 // --- AI 功能：Gemini API ---
-async function callGemini(prompt) {
+async function callGemini(prompt, audioData = null) {
     if (!API_KEY) {
         if (confirm("您尚未設定 Gemini API Key，請先前往設定頁面輸入。是否現在前往？")) {
             switchView('settings');
         }
         return null;
     }
-    // 更新為最新的模型 (gemini-2.5-flash)
+    // 更新為最新的模型 (gemini-2.5-flash)，該模型支援多模態 (Multimodal) 包含音頻
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+    let parts = [{ text: prompt }];
+    if (audioData) {
+        parts.push({
+            inlineData: {
+                mimeType: audioData.mimeType,
+                data: audioData.base64
+            }
+        });
+    }
 
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
+                contents: [{ parts: parts }]
             })
         });
         const data = await response.json();
@@ -132,11 +142,13 @@ async function callGemini(prompt) {
     }
 }
 
-// --- 錄音功能 ---
-let recognition = null;
+// --- 錄音功能 (直接交由 Gemini 處理) ---
+let mediaRecorder = null;
+let audioChunks = [];
 let isRecording = false;
+let globalStream = null; // 全域保存麥克風串流，避免重複詢問權限
 
-function startVoice() {
+async function startVoice() {
     if (!navigator.onLine) {
         alert("目前處於離線狀態，無法使用語音解析功能！請確認網路連線。");
         return;
@@ -145,75 +157,91 @@ function startVoice() {
     const btn = document.getElementById('voice-btn');
 
     // 若正在錄音中，則停止錄音
-    if (isRecording && recognition) {
-        recognition.stop();
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+    if (isRecording && mediaRecorder) {
+        mediaRecorder.stop();
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理錄音...';
         return;
     }
 
-    // 初始化錄音物件 (每次啟動時重新建立以避免狀態殘留)
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'zh-TW';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-        isRecording = true;
-        btn.innerHTML = '<i class="fas fa-stop-circle"></i> 停止錄音';
-        btn.classList.replace('bg-red-500', 'bg-red-400');
-    };
-
-    recognition.onresult = async (event) => {
-        isRecording = false;
-        const transcript = event.results[0][0].transcript;
-        btn.innerHTML = '<i class="fas fa-robot fa-spin"></i> AI 解析中...';
-        btn.classList.replace('bg-red-400', 'bg-red-500');
-
-        // 將語音辨識的結果傳給 Gemini API
-        const prompt = `請將以下這段口述日記解析為 JSON 格式，包含 "time_point" (時間點) 和 "content" (具體內容)。
-                範例輸入：上午上班時因為塞車而遲到，心情不好，還好主管沒生氣。
-                範例輸出：{"time_point": "上午上班時", "content": "因為塞車而遲到，心情不好，還好主管沒生氣。"}
-                輸入內容：${transcript}`;
-
-        try {
-            const aiResult = await callGemini(prompt);
-            if (aiResult) {
-                const cleanJson = aiResult.replace(/```json|```/g, '');
-                try {
-                    const entry = JSON.parse(cleanJson);
-                    addEntryToUI(entry.time_point || '剛才', entry.content);
-                } catch (parseErr) {
-                    console.error("JSON 解析失敗", parseErr, cleanJson);
-                    alert("AI 回傳的格式不正確，無法解析為日誌。");
-                }
-            }
-        } catch (e) {
-            alert("處理過程中發生意外錯誤");
-            console.error(e);
-        }
-        resetVoiceBtn();
-    };
-
-    recognition.onerror = (e) => {
-        console.error("錄音錯誤:", e.error);
-        isRecording = false;
-        resetVoiceBtn();
-    };
-
-    recognition.onend = () => {
-        // 如果已經結束但未進入 onresult，可能是因為使用者沒講話
-        if (isRecording) {
-            isRecording = false;
-            resetVoiceBtn();
-        }
-    };
-
-    // 開始錄音
     try {
-        recognition.start();
-    } catch (e) {
-        console.error("無法啟動語音辨識:", e);
-        alert("啟動語音辨識失敗，可能是您的瀏覽器或設備不支援該功能。");
+        if (!globalStream) {
+            // 只有在還沒有授權的時候才要求權限 (這樣就不會每次點擊都問)
+            globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+
+        // 優先嘗試使用 webm 格式，因 Gemini 支援良好；若不支援（如 Safari）則不指定讓瀏覽器決定
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+        mediaRecorder = new MediaRecorder(globalStream, mimeType ? { mimeType } : undefined);
+        audioChunks = [];
+
+        mediaRecorder.onstart = () => {
+            isRecording = true;
+            btn.innerHTML = '<i class="fas fa-stop-circle"></i> 停止錄音';
+            btn.classList.replace('bg-red-500', 'bg-red-400');
+        };
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = async () => {
+            isRecording = false;
+            // 我們不再這裡釋放麥克風資源 (`stream.getTracks().forEach(track => track.stop())`)
+            // 讓同一個變數 globalStream 在這個操作階段持續擁有權限，就不會每次點擊都問
+
+            if (audioChunks.length === 0) {
+                resetVoiceBtn();
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-robot fa-spin"></i> AI 解析中...';
+            btn.classList.replace('bg-red-400', 'bg-red-500');
+
+            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+
+            // 將 Blob 轉為 Base64 (Gemini API 所需格式)
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = async () => {
+                const base64data = reader.result.split(',')[1];
+
+                const prompt = `請聆聽這段錄音，並將其中的口述日記內容解析為 JSON 格式。
+需要包含 "time_point" (時間點，如：剛才、上午、剛剛開會時) 和 "content" (具體日記內容，請將語音內容轉為通順的文字)。
+如果沒有明確提到時間，請預設使用 "剛才" 作為 time_point。
+格式必須是嚴格的 JSON：
+{"time_point": "上午", "content": "因為塞車而遲到，心情不好..."}`;
+
+                try {
+                    const aiResult = await callGemini(prompt, {
+                        mimeType: audioBlob.type || 'audio/webm',
+                        base64: base64data
+                    });
+
+                    if (aiResult) {
+                        const cleanJson = aiResult.replace(/```json|```/g, '');
+                        try {
+                            const entry = JSON.parse(cleanJson);
+                            addEntryToUI(entry.time_point || '剛才', entry.content);
+                        } catch (parseErr) {
+                            console.error("JSON 解析失敗", parseErr, cleanJson);
+                            alert("AI 回傳的格式不正確，無法解析為日誌。");
+                        }
+                    }
+                } catch (e) {
+                    alert("處理音檔或請求 API 時發生意外錯誤");
+                    console.error(e);
+                }
+                resetVoiceBtn();
+            };
+        };
+
+        mediaRecorder.start();
+
+    } catch (err) {
+        console.error("無法存取麥克風:", err);
+        alert("無法啟動錄音，請確認您已允許瀏覽器存取麥克風權限。");
         resetVoiceBtn();
     }
 }
@@ -223,7 +251,8 @@ function resetVoiceBtn() {
     btn.innerHTML = '<i class="fas fa-microphone"></i> 錄音解析';
     btn.classList.replace('bg-red-400', 'bg-red-500'); // 還原按鈕顏色
     isRecording = false;
-    recognition = null;
+    mediaRecorder = null;
+    audioChunks = [];
 }
 
 // --- 條目管理 ---
@@ -288,6 +317,18 @@ async function generateSummary() {
 }
 
 // --- 儲存與讀取 ---
+function toggleApiKeyVisibility() {
+    const input = document.getElementById('api-key-input');
+    const icon = document.getElementById('toggle-api-key-icon');
+    if (input.style.webkitTextSecurity === 'disc') {
+        input.style.webkitTextSecurity = 'none';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.style.webkitTextSecurity = 'disc';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
 function saveApiKey() {
     const key = document.getElementById('api-key-input').value.trim();
     if (key) {
