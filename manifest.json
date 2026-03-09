@@ -1,9 +1,10 @@
 {
   "name": "心情日記本",
-  "short_name": "日記",
-  "description": "一個支援語音輸入與 AI 總結的心情日記本",
+  "short_name": "心情日記本",
+  "description": "一個AI支援語音輸入的簡易日記本",
   "start_url": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f9fafb",
   "theme_color": "#4f46e5",
   "icons": [

@@ -3,7 +3,8 @@ const urlsToCache = [
     './',
     './index.html',
     './script.js',
-    './manifest.json'
+    './manifest.json',
+    './dailyIcon.webp'
     // 外部資源如字體和 Tailwind CDN 由於跨域策略和更新頻率，通常依賴瀏覽器自身快取即可
 ];
 
