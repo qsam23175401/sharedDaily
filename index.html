@@ -41,10 +41,19 @@
     <nav class="bg-indigo-600 text-white p-4 sticky top-0 z-10 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">心情日記本</h1>
-            <div class="flex gap-2">
-                <button onclick="switchView('settings')" class="p-2 text-indigo-200 hover:text-white transition"><i
-                        class="fas fa-cog"></i> 設定</button>
-                <button onclick="switchView('list')" class="p-2"><i class="fas fa-calendar-alt"></i> 瀏覽</button>
+            <div class="flex gap-1 sm:gap-2">
+                <button onclick="switchView('write')"
+                    class="p-2 hover:bg-indigo-500 rounded transition flex items-center gap-1">
+                    <i class="fas fa-pen-nib"></i>
+                </button>
+                <button onclick="switchView('list')"
+                    class="p-2 hover:bg-indigo-500 rounded transition flex items-center gap-1">
+                    <i class="fas fa-calendar-alt"></i>
+                </button>
+                <button onclick="switchView('settings')"
+                    class="p-2 text-indigo-200 hover:text-white transition flex items-center gap-1">
+                    <i class="fas fa-cog"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -128,7 +137,7 @@
 
             <button onclick="saveDiary()"
                 class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition">
-                儲存今日日記
+                儲存日記(隨時能修改)
             </button>
         </section>
 

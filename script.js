@@ -223,7 +223,9 @@ async function startVoice() {
                         const cleanJson = aiResult.replace(/```json|```/g, '');
                         try {
                             const entry = JSON.parse(cleanJson);
-                            addEntryToUI(entry.time_point, entry.content);
+                            document.getElementById('manual-time').value = entry.time_point;
+                            document.getElementById('manual-input').value = entry.content;
+                            // addEntryToUI(entry.time_point, entry.content);
                         } catch (parseErr) {
                             console.error("JSON 解析失敗", parseErr, cleanJson);
                             alert("AI 回傳的格式不正確，無法解析為日誌。");
@@ -273,10 +275,8 @@ function addManualEntry() {
 
 //不直接加上去，只是填入就好
 function addEntryToUI(time, content) {
-    document.getElementById('manual-time').value = time;
-    document.getElementById('manual-input').value = content;
-    // entries.push({ time, content });
-    // renderEntries();
+    entries.push({ time, content });
+    renderEntries();
 }
 
 function renderEntries() {
