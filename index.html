@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>心情日記本</title>
 
     <!-- PWA 標籤設定 -->
@@ -31,6 +33,13 @@
 
         button {
             touch-action: manipulation;
+        }
+
+        /* 避免 iOS 輸入框縮放問題，確保字體大小至少 16px */
+        input,
+        textarea,
+        select {
+            font-size: 16px !important;
         }
     </style>
 </head>
