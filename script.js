@@ -188,8 +188,11 @@ async function startVoice() {
 
         mediaRecorder.onstop = async () => {
             isRecording = false;
-            // 我們不再這裡釋放麥克風資源 (`stream.getTracks().forEach(track => track.stop())`)
-            // 讓同一個變數 globalStream 在這個操作階段持續擁有權限，就不會每次點擊都問
+            // 釋放麥克風資源
+            if (globalStream) {
+                globalStream.getTracks().forEach(track => track.stop());
+                globalStream = null;
+            }
 
             if (audioChunks.length === 0) {
                 resetVoiceBtn();
