@@ -250,11 +250,21 @@ function addEntryToUI(time, content) {
 function renderEntries() {
     const list = document.getElementById('entries-list');
     list.innerHTML = entries.map((e, index) => `
-                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border-l-4 border-indigo-400">
-                    <div class="text-xs text-indigo-500 font-bold mb-1">${e.time}</div>
-                    <div class="text-gray-700 break-words">${e.content}</div>
+                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border-l-4 border-indigo-400 relative group">
+                    <button onclick="deleteEntry(${index})" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition px-2 py-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="text-xs text-indigo-500 font-bold mb-1 pr-6">${e.time}</div>
+                    <div class="text-gray-700 break-words pr-2">${e.content}</div>
                 </div>
             `).join('');
+}
+
+function deleteEntry(index) {
+    if (confirm("確定要刪除這筆小記嗎？")) {
+        entries.splice(index, 1);
+        renderEntries();
+    }
 }
 
 // --- 生成總結 ---
