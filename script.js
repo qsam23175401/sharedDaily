@@ -28,19 +28,115 @@ const dd = (initDate.getDate() < 10 ? '0' : '') + initDate.getDate();
 document.getElementById('diary-date').value = `${yyyy}-${mm}-${dd}`;
 document.getElementById('filter-month').value = `${yyyy}-${mm}`;
 
+// 隨機提示詞清單
+function setRandomPlaceholder() {
+    const PLACEHOLDER_PROMPTS = [
+        "有發生了什麼事呢？",
+        "現在的心情如何？用文字記錄下來吧...",
+        "身體的感覺如何？",
+        "有沒有哪瞬間讓你覺得很有成就感？",
+        "寫下在意的事情如何？",
+        "如果現在要用一個詞形容，那會是什麼？",
+        "最想對剛才的自己說什麼？",
+        "有沒有哪件事讓你覺得特別溫暖？",
+        "有沒有什麼事情一直懸在心上？",
+        "隨意寫點什麼吧，這裡是屬於你的空間...",
+        "試著寫下心中的如果小劇場？",
+        "有什麼事令你心有戚戚？"
+    ];
+    const nowHour = new Date().getHours();
+    const listofTime = [1, 4, 7, 10, 13, 16, 19, 22]
+    let min = 2;
+    for (t of listofTime) {
+        const abs = Math.abs(nowHour - t);
+        if (abs < min) {
+            min = t;
+            break;
+        }
+    }
+    const listofHour = `listOf${min}`
+
+    let listOfMore = {
+        listOf1: [
+            '是為了什麼熬夜呢？',
+            '還有什麼事情掛念著嗎？',
+            '寫下精彩的夜生活？'
+        ],
+        listOf4: [
+            '今天起的真早！正要做什麼呢？',
+            '現在起床是因為睡不著嗎？',
+            '是否做噩夢了？要寫下來嗎？'
+        ],
+        listOf7: [
+            '早安！現在心情如何？',
+            '今天早上的心情怎麼樣？',
+            '接下來打算怎麼渡過這一天？'
+        ],
+        listOf10: [
+            '手邊的事情是否順利呢？',
+            '現在的心情比起床時好一點嗎？',
+            '是否已經完成了一些任務？'
+        ],
+        listOf13: [
+            '休息足夠嗎？還有半天，別太勉強了！',
+            '把你的疲勞寫下來如何？',
+            '期待下午的計劃嗎？'
+        ],
+        listOf16: [
+            '今天都遇到什麼樣的人呢？',
+            '今天有發現什麼新事物嗎？',
+            '今天的挑戰是什麼？'
+        ],
+        listOf19: [
+            '今天有什麼想感謝的人或事嗎？',
+            '晚安！睡前想寫下什麼？',
+            '今天有沒有抽時間運動呢？'
+        ],
+        listOf22: [
+            '任務接近尾聲了嗎？',
+            '身體是否覺得累了？',
+            '寫日記比睡覺還重要呢！'
+        ],
+    }
+    PLACEHOLDER_PROMPTS.push(...listOfMore[listofHour]);
+    console.log(PLACEHOLDER_PROMPTS);
+
+    const textarea = document.getElementById('manual-input');
+    if (textarea) {
+        const randomIndex = Math.floor(Math.random() * PLACEHOLDER_PROMPTS.length);
+        textarea.placeholder = PLACEHOLDER_PROMPTS[randomIndex];
+    }
+}
+
 // --- 自動讀取今日內容 ---
 function loadInitialContent() {
     const today = document.getElementById('diary-date').value;
-    
-    // 優先檢查是否有「暫存」
-    const draft = JSON.parse(localStorage.getItem('diary_draft') || 'null');
-    if (draft && draft.date === today) {
-        console.log("載入今日暫存...");
-        entries = draft.entries || [];
-        document.getElementById('daily-summary').value = draft.summary || "";
-        currentMood = draft.mood || "";
-    } else {
-        // 如果沒有暫存，檢查是否已有儲存的內容
+
+    // 檢查是否有暫存
+    const draftStr = localStorage.getItem('diary_draft');
+    if (draftStr) {
+        const draft = JSON.parse(draftStr);
+        if (draft.date && draft.date !== today) {
+            // 跨夜作業：發現昨天的暫存，自動幫忙存檔
+            console.log(`發現昨天的暫存 (${draft.date})，正在自動存檔...`);
+            diaryData[draft.date] = {
+                entries: draft.entries || [],
+                summary: draft.summary || "",
+                mood: draft.mood || ""
+            };
+            localStorage.setItem('my_diaries', JSON.stringify(diaryData));
+            localStorage.removeItem('diary_draft');
+            console.log("昨天暫存已自動轉換為正式紀錄。");
+        } else if (draft.date === today) {
+            console.log("載入今日暫存...");
+            entries = draft.entries || [];
+            document.getElementById('daily-summary').value = draft.summary || "";
+            currentMood = draft.mood || "";
+        }
+    }
+
+    // 如果沒有載入到暫存 (或者暫存剛被自動轉存了)，檢查是否已有儲存的內容
+    if ((!entries || entries.length === 0) && !document.getElementById('daily-summary').value) {
         const savedData = diaryData[today];
         if (savedData) {
             console.log("載入已儲存內容...");
@@ -49,7 +145,7 @@ function loadInitialContent() {
             currentMood = savedData.mood || "";
         }
     }
-    
+
     // 更新 UI
     renderEntries();
     updateMoodUI();
@@ -95,6 +191,7 @@ document.getElementById('diary-date').addEventListener('change', (e) => {
 
 renderMoodOptions();
 loadInitialContent();
+setRandomPlaceholder();
 
 // 心情選擇器邏輯
 document.querySelectorAll('.mood-dot').forEach(dot => {
@@ -128,6 +225,7 @@ function switchView(view) {
             input.value = userMoodLabels[input.dataset.color];
         });
     }
+    if (view === 'write') setRandomPlaceholder();
 }
 
 // --- 心情標籤功能 ---
@@ -346,6 +444,7 @@ function addManualEntry() {
     addEntryToUI(time, text);
     document.getElementById('manual-input').value = '';
     timeInput.value = ''; // 記錄完畢後將時間點重置，方便連續輸入
+    setRandomPlaceholder();
 }
 
 //不直接加上去，只是填入就好
@@ -446,7 +545,7 @@ function saveDiary() {
     localStorage.removeItem('diary_draft'); // 儲存正式版後移除暫存
     alert("日記已儲存！");
     // 不再清空 entries，讓使用者能看到剛儲存的結果 (符合「開啟即載入」邏輯)
-    switchView('list');
+    //switchView('list');
 }
 
 function renderDiaryList() {

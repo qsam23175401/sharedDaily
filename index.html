@@ -41,6 +41,23 @@
         select {
             font-size: 16px !important;
         }
+
+        /* 頁面切換動畫 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
     </style>
 </head>
 
@@ -77,22 +94,25 @@
 
         <!-- 檢視模式：讀取日記 -->
         <section id="view-list" class="hidden">
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <input type="month" id="filter-month" class="border p-2 rounded flex-1">
-                <select id="filter-mood" class="border p-2 rounded flex-1">
-                    <option value="">所有心情顏色</option>
-                    <!-- 選項將由 JS 動態生成以套用使用者設定 -->
-                </select>
-            </div>
-            <div id="diary-container" class="space-y-4">
-                <!-- 日記列表將生成在此 -->
+            <div class="animate-fade-up">
+
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="month" id="filter-month" class="border p-2 rounded flex-1">
+                    <select id="filter-mood" class="border p-2 rounded flex-1">
+                        <option value="">所有心情顏色</option>
+                        <!-- 選項將由 JS 動態生成以套用使用者設定 -->
+                    </select>
+                </div>
+                <div id="diary-container" class="space-y-4">
+                    <!-- 日記列表將生成在此 -->
+                </div>
             </div>
             <button onclick="switchView('write')"
                 class="fixed bottom-6 right-6 z-20 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg text-2xl">＋</button>
         </section>
 
         <!-- 寫作模式：新增/編輯日記 -->
-        <section id="view-write" class="space-y-6">
+        <section id="view-write" class="space-y-6 animate-fade-up">
             <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <input type="date" id="diary-date"
@@ -151,7 +171,7 @@
         </section>
 
         <!-- 設定模式：輸入 API Key -->
-        <section id="view-settings" class="hidden space-y-6">
+        <section id="view-settings" class="hidden space-y-6 animate-fade-up">
             <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-key text-indigo-500"></i>
                     API 金鑰設定</h2>
@@ -259,7 +279,7 @@
                         IOS：以 Safari 開啟 → 分享 → 加入主畫面
                     </p>
                     <div class="text-gray-400 text-xs mt-4">
-                        Version 1.0.4
+                        Version 1.1.0
                     </div>
                 </div>
 
