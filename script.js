@@ -28,7 +28,73 @@ const dd = (initDate.getDate() < 10 ? '0' : '') + initDate.getDate();
 document.getElementById('diary-date').value = `${yyyy}-${mm}-${dd}`;
 document.getElementById('filter-month').value = `${yyyy}-${mm}`;
 
+// --- 自動讀取今日內容 ---
+function loadInitialContent() {
+    const today = document.getElementById('diary-date').value;
+    
+    // 優先檢查是否有「暫存」
+    const draft = JSON.parse(localStorage.getItem('diary_draft') || 'null');
+    if (draft && draft.date === today) {
+        console.log("載入今日暫存...");
+        entries = draft.entries || [];
+        document.getElementById('daily-summary').value = draft.summary || "";
+        currentMood = draft.mood || "";
+    } else {
+        // 如果沒有暫存，檢查是否已有儲存的內容
+        const savedData = diaryData[today];
+        if (savedData) {
+            console.log("載入已儲存內容...");
+            entries = [...savedData.entries];
+            document.getElementById('daily-summary').value = savedData.summary || "";
+            currentMood = savedData.mood || "";
+        }
+    }
+    
+    // 更新 UI
+    renderEntries();
+    updateMoodUI();
+}
+
+function updateMoodUI() {
+    document.querySelectorAll('.mood-dot').forEach(dot => {
+        dot.classList.toggle('active', dot.dataset.color === currentMood);
+    });
+}
+
+function autoSaveDraft() {
+    const date = document.getElementById('diary-date').value;
+    const summary = document.getElementById('daily-summary').value;
+    const draft = {
+        date,
+        entries,
+        summary,
+        mood: currentMood
+    };
+    localStorage.setItem('diary_draft', JSON.stringify(draft));
+}
+
+// 監聽總結輸入以自動存檔
+document.getElementById('daily-summary').addEventListener('input', autoSaveDraft);
+// 監聽日期變更載入對應內容
+document.getElementById('diary-date').addEventListener('change', (e) => {
+    const selectedDate = e.target.value;
+    const savedData = diaryData[selectedDate];
+    if (savedData) {
+        entries = [...savedData.entries];
+        document.getElementById('daily-summary').value = savedData.summary || "";
+        currentMood = savedData.mood || "";
+    } else {
+        entries = [];
+        document.getElementById('daily-summary').value = "";
+        currentMood = "";
+    }
+    renderEntries();
+    updateMoodUI();
+    autoSaveDraft();
+});
+
 renderMoodOptions();
+loadInitialContent();
 
 // 心情選擇器邏輯
 document.querySelectorAll('.mood-dot').forEach(dot => {
@@ -38,8 +104,14 @@ document.querySelectorAll('.mood-dot').forEach(dot => {
         dot.classList.add('active');
         currentMood = dot.dataset.color;
     };
-    dot.addEventListener('click', handleMoodClick);
-    dot.addEventListener('touchstart', handleMoodClick, { passive: false });
+    dot.addEventListener('click', (e) => {
+        handleMoodClick(e);
+        autoSaveDraft();
+    });
+    dot.addEventListener('touchstart', (e) => {
+        handleMoodClick(e);
+        autoSaveDraft();
+    }, { passive: false });
 });
 
 // --- 切換視圖 ---
@@ -228,7 +300,7 @@ async function startVoice() {
                             const entry = JSON.parse(cleanJson);
                             document.getElementById('manual-time').value = entry.time_point;
                             document.getElementById('manual-input').value = entry.content;
-                            // addEntryToUI(entry.time_point, entry.content);
+                            // 這裡不直接 addEntryToUI 是為了讓使用者確認解析內容
                         } catch (parseErr) {
                             console.error("JSON 解析失敗", parseErr, cleanJson);
                             alert("AI 回傳的格式不正確，無法解析為日誌。");
@@ -280,6 +352,7 @@ function addManualEntry() {
 function addEntryToUI(time, content) {
     entries.push({ time, content });
     renderEntries();
+    autoSaveDraft();
 }
 
 function renderEntries() {
@@ -299,6 +372,7 @@ function deleteEntry(index) {
     if (confirm("確定要刪除這筆小記嗎？")) {
         entries.splice(index, 1);
         renderEntries();
+        autoSaveDraft();
     }
 }
 
@@ -308,16 +382,24 @@ async function generateSummary(e) {
         alert("目前處於離線狀態，無法使用 AI 自動總結功能！請確認網路連線。");
         return;
     }
-    if (entries.length === 0) return alert("請先寫一些小記喔！");
+    if (entries.length === 0) {
+        const manualInput = document.getElementById('manual-input').value.trim();
+        if (manualInput) {
+            addManualEntry();
+        } else {
+            return alert("請先寫一些小記喔！");
+        }
+    }
     const btn = e.target;
     btn.innerText = "生成中...";
 
     const logsText = entries.map(e => `${e.time}: ${e.content}`).join('\n');
-    const prompt = `根據以下的小記內容，以第一人稱寫一段中立但不冗長的當日總結（不超過150字），並在最後加入自我鼓勵的話：\n${logsText}`;
+    const prompt = `根據以下的小記內容，以第一人稱寫一段中立且簡短的當日總結（不超過150字，也不加油添醋）：\n${logsText}`;
 
     const summary = await callGemini(prompt);
     if (summary) {
         document.getElementById('daily-summary').value = summary;
+        autoSaveDraft();
     }
     btn.innerHTML = '<i class="fas fa-magic"></i> AI 自動生成';
 }
@@ -361,8 +443,9 @@ function saveDiary() {
     };
 
     localStorage.setItem('my_diaries', JSON.stringify(diaryData));
+    localStorage.removeItem('diary_draft'); // 儲存正式版後移除暫存
     alert("日記已儲存！");
-    entries = []; // 清空
+    // 不再清空 entries，讓使用者能看到剛儲存的結果 (符合「開啟即載入」邏輯)
     switchView('list');
 }
 
