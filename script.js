@@ -110,9 +110,11 @@ function setRandomPlaceholder() {
     PLACEHOLDER_PROMPTS.push(...listOfMore[listofHour]);
 
     const textarea = document.getElementById('manual-input');
+    const sunmary = document.getElementById('daily-summary')
     if (textarea) {
         const randomIndex = Math.floor(Math.random() * PLACEHOLDER_PROMPTS.length);
-        textarea.placeholder = PLACEHOLDER_PROMPTS[randomIndex];
+        textarea.placeholder = `${PLACEHOLDER_PROMPTS[randomIndex]}\n(請隨意寫下供稍後回憶的片段...)`;
+        sunmary.placeholder = `這一天過得如何呢？\n寫些話給自己吧！\n（請AI寫的話，設定可以修改提示詞）`;
     }
 }
 
@@ -232,6 +234,7 @@ function switchView(view) {
         document.getElementById('ai-setting-person').value = aiSettings.person;
         document.getElementById('ai-setting-focus').value = aiSettings.focus;
         document.getElementById('ai-setting-attitude').value = aiSettings.attitude;
+        document.getElementById('ai-setting-custom').placeholder = `讓Gemini模仿你寫日記的習慣。\n範例一：請用一首五言絕句總結我的一天。\n範例二：以第一人稱視角撰寫，更多關注在視覺脈絡上，語氣像挖掘與探索。`;
         document.getElementById('ai-setting-custom').value = aiSettings.custom;
     }
     if (view === 'write') setRandomPlaceholder();
@@ -499,7 +502,7 @@ function deleteEntry(index) {
 // --- 生成總結 ---
 async function generateSummary(e) {
     if (!navigator.onLine) {
-        alert("目前處於離線狀態，無法使用 AI 自動總結功能！請確認網路連線。");
+        alert("目前處於離線狀態，無法使用 AI 幫我寫日記功能！請確認網路連線。");
         return;
     }
     if (entries.length === 0) {
