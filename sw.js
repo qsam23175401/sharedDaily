@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diary-pwa-cache-v1.1.2';
+const CACHE_NAME = 'diary-pwa-cache-v1.1.3';
 const urlsToCache = [
     './',
     './index.html',

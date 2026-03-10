@@ -521,7 +521,7 @@ async function generateSummary(e) {
         autoSaveDraft();
     }
     btn.innerHTML = '<i class="fas fa-magic"></i> AI 自動生成';
-    saveDiary();
+    saveDiary(true)
 }
 
 //取得設定中的提示詞
@@ -565,7 +565,7 @@ function saveApiKey() {
     }
 }
 
-function saveDiary() {
+function saveDiary(auto = false) {
     const date = document.getElementById('diary-date').value;
     const summary = document.getElementById('daily-summary').value;
 
@@ -579,7 +579,7 @@ function saveDiary() {
 
     localStorage.setItem('my_diaries', JSON.stringify(diaryData));
     localStorage.removeItem('diary_draft'); // 儲存正式版後移除暫存
-    alert("日記已儲存！");
+    if (!auto) alert("日記已儲存！");
     // 不再清空 entries，讓使用者能看到剛儲存的結果 (符合「開啟即載入」邏輯)
     //switchView('list');
 }
