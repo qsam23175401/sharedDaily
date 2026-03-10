@@ -612,7 +612,7 @@ function renderDiaryList() {
                         <h4 class="font-bold text-lg">${date}</h4>
                         <span class="text-xs text-gray-400">${data.entries.length} 則紀錄</span>
                     </div>
-                    <p class="text-gray-600 text-sm mt-2 line-clamp-2">${data.summary || '點擊查看詳情...'}</p>
+                    <p class="text-gray-600 text-sm mt-2 line-clamp-2">${data.summary || '這一天還沒寫完...'}</p>
                 `;
         card.onclick = () => loadDiaryToEdit(date);
         container.appendChild(card);
