@@ -467,11 +467,12 @@ function addManualEntry() {
     setRandomPlaceholder();
 }
 
-//不直接加上去，只是填入就好
+//添加小記時，當日已有內容，所以自動儲存比暫存好。
 function addEntryToUI(time, content) {
     entries.push({ time, content });
     renderEntries();
-    autoSaveDraft();
+    //autoSaveDraft();
+    saveDiary(true);
 }
 
 function renderEntries() {
