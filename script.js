@@ -14,10 +14,19 @@ const defaultMoodLabels = {
     "#9bf6ff": "藍色 (憂鬱/冷靜)",
     "#bdb2ff": "紫色 (浪漫/神祕)"
 };
-let userMoodLabels = JSON.parse(localStorage.getItem('mood_labels')) || {};
+const userMoodLabels = JSON.parse(localStorage.getItem('mood_labels')) || {};
 for (let key in defaultMoodLabels) {
     if (!userMoodLabels[key]) userMoodLabels[key] = defaultMoodLabels[key];
 }
+
+// AI 提示詞設定
+const defaultAiSettings = {
+    person: "第一人稱",
+    focus: "自由敘事",
+    attitude: "中立",
+    custom: ""
+};
+let aiSettings = JSON.parse(localStorage.getItem('ai_settings')) || { ...defaultAiSettings };
 
 // 初始化日期 (Android WebView 可能無法正確解析 valueAsDate，因此改由字串手動指定日期以確保有預設值)
 const initDate = new Date();
@@ -99,7 +108,6 @@ function setRandomPlaceholder() {
         ],
     }
     PLACEHOLDER_PROMPTS.push(...listOfMore[listofHour]);
-    console.log(PLACEHOLDER_PROMPTS);
 
     const textarea = document.getElementById('manual-input');
     if (textarea) {
@@ -118,7 +126,6 @@ function loadInitialContent() {
         const draft = JSON.parse(draftStr);
         if (draft.date && draft.date !== today) {
             // 跨夜作業：發現昨天的暫存，自動幫忙存檔
-            console.log(`發現昨天的暫存 (${draft.date})，正在自動存檔...`);
             diaryData[draft.date] = {
                 entries: draft.entries || [],
                 summary: draft.summary || "",
@@ -126,9 +133,7 @@ function loadInitialContent() {
             };
             localStorage.setItem('my_diaries', JSON.stringify(diaryData));
             localStorage.removeItem('diary_draft');
-            console.log("昨天暫存已自動轉換為正式紀錄。");
         } else if (draft.date === today) {
-            console.log("載入今日暫存...");
             entries = draft.entries || [];
             document.getElementById('daily-summary').value = draft.summary || "";
             currentMood = draft.mood || "";
@@ -139,7 +144,6 @@ function loadInitialContent() {
     if ((!entries || entries.length === 0) && !document.getElementById('daily-summary').value) {
         const savedData = diaryData[today];
         if (savedData) {
-            console.log("載入已儲存內容...");
             entries = [...savedData.entries];
             document.getElementById('daily-summary').value = savedData.summary || "";
             currentMood = savedData.mood || "";
@@ -224,6 +228,11 @@ function switchView(view) {
         document.querySelectorAll('#mood-label-inputs input').forEach(input => {
             input.value = userMoodLabels[input.dataset.color];
         });
+        // 載入 AI 提示詞設定至介面
+        document.getElementById('ai-setting-person').value = aiSettings.person;
+        document.getElementById('ai-setting-focus').value = aiSettings.focus;
+        document.getElementById('ai-setting-attitude').value = aiSettings.attitude;
+        document.getElementById('ai-setting-custom').value = aiSettings.custom;
     }
     if (view === 'write') setRandomPlaceholder();
 }
@@ -257,6 +266,17 @@ function saveMoodLabels() {
     renderMoodOptions();
     alert("心情標籤已儲存！");
     switchView('write');
+}
+
+// --- AI 提示詞設定功能 ---
+function saveAiSettings() {
+    aiSettings.person = document.getElementById('ai-setting-person').value;
+    aiSettings.focus = document.getElementById('ai-setting-focus').value;
+    aiSettings.attitude = document.getElementById('ai-setting-attitude').value;
+    aiSettings.custom = document.getElementById('ai-setting-custom').value.trim();
+
+    localStorage.setItem('ai_settings', JSON.stringify(aiSettings));
+    alert("提示詞設定已儲存！");
 }
 
 // --- AI 功能：Gemini API ---
@@ -489,11 +509,11 @@ async function generateSummary(e) {
             return alert("請先寫一些小記喔！");
         }
     }
+    const promptSettins = getPromptSettins()
     const btn = e.target;
     btn.innerText = "生成中...";
-
     const logsText = entries.map(e => `${e.time}: ${e.content}`).join('\n');
-    const prompt = `根據以下的小記內容，以第一人稱寫一段中立且簡短的當日總結（不超過150字，也不加油添醋）：\n${logsText}`;
+    const prompt = `目標：\n根據以下「今日小記」的內容填入當日總結，不要生成「當日總結：」。\n日記本主人要求：${promptSettins}\n今日小記：\n${logsText}當日總結：\n`;
 
     const summary = await callGemini(prompt);
     if (summary) {
@@ -501,6 +521,22 @@ async function generateSummary(e) {
         autoSaveDraft();
     }
     btn.innerHTML = '<i class="fas fa-magic"></i> AI 自動生成';
+    saveDiary();
+}
+
+//取得設定中的提示詞
+function getPromptSettins() {
+    if (aiSettings.custom) {
+        return aiSettings.custom;
+    }
+    const person = aiSettings.person;
+    const focusOn = aiSettings.focus;
+    const attitude = aiSettings.attitude;
+
+    let focusText = focusOn === "自由敘事" ? "" : `更多關注在「${focusOn}」上`;
+    let attitudeText = `語氣要「${attitude}」`;
+
+    return `以${person}視角撰寫，${focusText}${focusText ? "，" : ""}${attitudeText}。`;
 }
 
 // --- 儲存與讀取 ---

@@ -141,7 +141,7 @@
                         </button>
                         <div class="flex flex-1 gap-2">
                             <input type="text" id="manual-time" value="" placeholder="時間是..."
-                                class="border px-3 py-2 rounded-lg w-20 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center shrink-0">
+                                class="border px-1 py-2 rounded-lg w-20 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center shrink-0 min-w-0">
                             <button onclick="addManualEntry()"
                                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg flex-1 hover:bg-indigo-700 transition whitespace-nowrap min-w-0">添加小記</button>
                         </div>
@@ -210,37 +210,37 @@
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #ffadad"></div>
                             <input type="text" data-color="#ffadad"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：紅色 (生氣/熱情)">
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #ffd6a5"></div>
                             <input type="text" data-color="#ffd6a5"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：橘色 (開心)">
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #fdffb6"></div>
                             <input type="text" data-color="#fdffb6"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：黃色 (平靜)">
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #caffbf"></div>
                             <input type="text" data-color="#caffbf"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：綠色 (放鬆)">
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #9bf6ff"></div>
                             <input type="text" data-color="#9bf6ff"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：藍色 (憂鬱/冷靜)">
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full shrink-0 shadow-sm" style="background: #bdb2ff"></div>
                             <input type="text" data-color="#bdb2ff"
-                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none"
+                                class="border p-2 rounded-lg flex-1 focus:ring-2 focus:ring-indigo-300 outline-none min-w-0"
                                 placeholder="例如：紫色 (浪漫/神祕)">
                         </div>
                     </div>
@@ -248,6 +248,80 @@
                         class="w-full bg-indigo-600 text-white py-3 mt-4 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
                         儲存心情標籤
                     </button>
+                </div>
+
+                <!-- AI 總結的提示詞設定 -->
+                <div class="border-t pt-6 mt-6 border-gray-100">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i
+                            class="fas fa-robot text-indigo-500"></i>
+                        AI 總結提示詞設定</h2>
+                    <p class="text-gray-600 text-sm mb-4">
+                        設定 AI 如何幫您總結日記。您可以選擇預設選項，或是在下方輸入完全自訂的提示詞。
+                    </p>
+
+                    <div class="space-y-4" id="ai-settings-group">
+                        <!-- 人稱設定 -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">AI人稱設定</label>
+                            <select id="ai-setting-person"
+                                class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none">
+                                <option value="第一人稱">第一人稱</option>
+                                <option value="第二人稱">第二人稱</option>
+                            </select>
+                        </div>
+
+                        <!-- 關注重點設定 -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">關注重點</label>
+                            <select id="ai-setting-focus"
+                                class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none">
+                                <option value="自由敘事">自由敘事 (預設)</option>
+                                <option value="情緒起伏">情緒起伏</option>
+                                <option value="人情與感恩">人情與感恩</option>
+                                <option value="大事脈絡">大事脈絡</option>
+                                <option value="細微體察">細微體察</option>
+                                <option value="思緒走向">思緒走向</option>
+                                <option value="身體變化">身體變化</option>
+                            </select>
+                        </div>
+
+                        <!-- 語氣設定 -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">語氣設定</label>
+                            <select id="ai-setting-attitude"
+                                class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none">
+                                <option value="中立">中立(預設)</option>
+                                <option value="溫暖與包容">溫暖與包容</option>
+                                <option value="雀躍與陪伴">雀躍與陪伴</option>
+                                <option value="憤怒與苛責">憤怒與苛責</option>
+                                <option value="嚴格與指教">嚴格與指教</option>
+                                <option value="鼓舞與支持">鼓舞與支持</option>
+                                <option value="灰心與無奈">灰心與無奈</option>
+                                <option value="沉穩與堅強">沉穩與堅強</option>
+                                <option value="挫敗與失落">挫敗與失落</option>
+                                <option value="堅定與砥礪">堅定與砥礪</option>
+                                <option value="懊惱與感傷">懊惱與感傷</option>
+                                <option value="沉思與反省">沉思與反省</option>
+                                <option value="抽離與冷漠">抽離與冷漠</option>
+                                <option value="自嘲與幽默">自嘲與幽默</option>
+                                <option value="決絕與鐵心">決絕與鐵心</option>
+                                <option value="慨憤與激昂">慨憤與激昂</option>
+                            </select>
+                        </div>
+
+                        <!-- 自訂提示詞 -->
+                        <div class="border-t pt-4 mt-4">
+                            <label class="block text-sm font-bold text-indigo-700 mb-1">完全自訂提示詞 (將覆蓋上方所有設定)</label>
+                            <textarea id="ai-setting-custom" placeholder="例如：請用一首五言絕句總結我的一天..."
+                                class="w-full border p-3 rounded-lg h-24 focus:ring-2 focus:ring-indigo-300 outline-none"></textarea>
+                            <p class="text-xs text-gray-400 mt-1">*若此欄有內容，上方的人稱、重點與語氣選擇將無效。</p>
+                        </div>
+
+                        <button onclick="saveAiSettings()"
+                            class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                            儲存 AI 提示詞設定
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 如何取得 API Key 指南 -->
@@ -266,20 +340,24 @@
                 </div>
 
                 <!-- 作者的話與版本號 -->
-                <div class="border-t pt-6 mt-6 border-gray-100 text-center">
+                <div class="border-t pt-6 mt-6 border-gray-100">
                     <h2 class="text-xl font-bold mb-2 flex items-center justify-center gap-2"><i
                             class="fas fa-heart text-red-500"></i>
                         作者的話</h2>
                     <p class="text-gray-600 text-sm leading-relaxed mb-4 break-words overflow-hidden">
                         感謝您使用這款心情日記本！<br>
                         希望能讓您記錄生活變得更輕鬆、也更溫暖。<br>
+                        日記內容僅儲存在個人裝置上，不會上傳任何伺服器。<br>
+
                         歡迎分享並加入主畫面。<br>
                         網址：https://qsam23175401.github.io/sharedDaily/<br>
+
                         Android：瀏覽器右上角 → 加入主畫面 → 安裝<br>
-                        IOS：以 Safari 開啟 → 分享 → 加入主畫面
+
+                        IOS：以 Safari 開啟 → 分享 → 加入主畫面<br>
                     </p>
                     <div class="text-gray-400 text-xs mt-4">
-                        Version 1.1.1
+                        Version 1.1.2
                     </div>
                 </div>
 
