@@ -1,10 +1,11 @@
-const CACHE_NAME = 'diary-pwa-cache-v1.2.3';
+const CACHE_NAME = 'diary-pwa-cache-v1.3.0';
 const urlsToCache = [
     './',
     './index.html',
     './script.js',
     './manifest.json',
-    './dailyIcon.webp'
+    './dailyIcon.webp',
+    './style.css',
     // 外部資源如字體和 Tailwind CDN 由於跨域策略和更新頻率，通常依賴瀏覽器自身快取即可
 ];
 

@@ -4,35 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="心情日記本">
     <title>心情日記本</title>
 
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+        connect-src 'self' https://generativelanguage.googleapis.com;
+        style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        font-src 'self' https://cdnjs.cloudflare.com data:;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        ">
     <!-- PWA 標籤設定 -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5"> <!-- 為了配合 Tailwind 的 indigo-600 -->
+
     <link rel="apple-touch-icon" href="dailyIcon.webp"> <!-- iOS 專用 Icon -->
     <link rel="icon" href="dailyIcon.webp"> <!-- 網站 favicon -->
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
+        .mood-dot,
+        .cursor-pointer,
+        button {
+            touch-action: manipulation;
+        }
+
         .mood-dot {
             width: 24px;
             height: 24px;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
-            touch-action: manipulation;
         }
 
         .mood-dot.active {
             border-color: black;
             transform: scale(1.2);
-        }
-
-        button {
-            touch-action: manipulation;
         }
 
         /* 避免 iOS 輸入框縮放問題，確保字體大小至少 16px */
@@ -63,20 +79,21 @@
 
 <body class="bg-gray-50 min-h-screen pb-20">
 
+
     <!-- 導覽列 -->
     <nav class="bg-indigo-600 text-white p-4 sticky top-0 z-10 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">心情日記本</h1>
             <div class="flex gap-1 sm:gap-2">
-                <button onclick="switchView('write')"
+                <button
                     class="p-2 hover:bg-indigo-500 rounded transition flex items-center gap-1">
                     <i class="fas fa-pen-nib"></i>
                 </button>
-                <button onclick="switchView('list')"
+                <button
                     class="p-2 hover:bg-indigo-500 rounded transition flex items-center gap-1">
                     <i class="fas fa-calendar-alt"></i>
                 </button>
-                <button onclick="switchView('settings')"
+                <button
                     class="p-2 text-indigo-200 hover:text-white transition flex items-center gap-1">
                     <i class="fas fa-cog"></i>
                 </button>
@@ -85,6 +102,22 @@
     </nav>
 
     <main class="container mx-auto p-4 max-w-2xl">
+        <!-- 嚴格模式密碼輸入區 -->
+        <div id="strict-mode-login-overlay" class="hidden fixed inset-0 z-50 flex flex-col justify-center items-center px-4 bg-indigo-600">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col items-center animate-fade-up">
+                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-lock text-indigo-600 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">安心鎖已開啟</h2>
+                <p class="text-gray-500 text-sm mb-6 text-center">請輸入密碼解鎖日記本</p>
+                <textarea id="strict-mode-login-password"
+                    class="w-full border-2 border-indigo-100 p-4 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none mb-6 resize-none transition-all placeholder-gray-400"
+                    placeholder="若輸入錯誤，可以繼續嘗試" rows="2"></textarea>
+                <button class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:bg-indigo-700 hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 transition-all duration-200">
+                    確認解鎖
+                </button>
+            </div>
+        </div>
 
         <!-- 離線提示 Banner -->
         <div id="offline-banner"
@@ -107,7 +140,7 @@
                     <!-- 日記列表將生成在此 -->
                 </div>
             </div>
-            <button onclick="switchView('write')"
+            <button id="add-new-diary-btn"
                 class="fixed bottom-6 right-6 z-20 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg text-2xl">＋</button>
         </section>
 
@@ -135,14 +168,15 @@
                 <!-- 輸入區 -->
                 <div class="border-t pt-4">
                     <div class="flex flex-col sm:flex-row gap-2 mb-3">
-                        <button onclick="startVoice()" id="voice-btn"
+                        <button id="voice-btn"
                             class="bg-red-500 text-white px-4 py-2 rounded-lg flex justify-center items-center gap-2 whitespace-nowrap">
                             <i class="fas fa-microphone"></i> 語音輸入
                         </button>
                         <div class="flex flex-1 gap-2">
-                            <input type="text" id="manual-time" autocomplete="new-password" value="" placeholder="時間是..."
+                            <input type="text" id="manual-time" autocomplete="new-password" value=""
+                                placeholder="時間是..."
                                 class="border px-1 py-2 rounded-lg w-20 sm:w-28 focus:ring-2 focus:ring-indigo-300 outline-none text-center shrink-0 min-w-0">
-                            <button onclick="addManualEntry()"
+                            <button id="add-entry-btn"
                                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg flex-1 hover:bg-indigo-700 transition whitespace-nowrap min-w-0">添加小記</button>
                         </div>
                     </div>
@@ -155,7 +189,7 @@
             <div class="bg-indigo-50 p-4 sm:p-6 rounded-xl border border-indigo-100">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-indigo-800">日記主文</h3>
-                    <button onclick="generateSummary(event)"
+                        <button id="ai-generate-btn"
                         class="text-sm bg-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-300">
                         <i class="fas fa-magic"></i> AI幫我寫日記
                     </button>
@@ -164,8 +198,8 @@
                     class="w-full bg-transparent border-b border-indigo-200 focus:outline-none py-2 h-60"></textarea>
             </div>
 
-            <button onclick="saveDiary()"
-                class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition">
+            <button
+                class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition" id="save-diary-btn">
                 儲存日記(隨時能修改)
             </button>
         </section>
@@ -186,13 +220,13 @@
                             <input type="text" id="api-key-input" placeholder="AIzaSy..."
                                 class="w-full border p-3 pr-10 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none"
                                 style="-webkit-text-security: disc;">
-                            <button type="button" onclick="toggleApiKeyVisibility()"
+                            <button type="button"
                                 class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-indigo-600">
                                 <i class="fas fa-eye" id="toggle-api-key-icon"></i>
                             </button>
                         </div>
                     </div>
-                    <button onclick="saveApiKey()"
+                    <button id="save-api-key-btn"
                         class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
                         儲存 API 金鑰設定
                     </button>
@@ -244,9 +278,40 @@
                                 placeholder="例如：紫色 (浪漫/神祕)">
                         </div>
                     </div>
-                    <button onclick="saveMoodLabels()"
+                    <button id="save-mood-labels-btn"
                         class="w-full bg-indigo-600 text-white py-3 mt-4 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
                         儲存心情標籤
+                    </button>
+                </div>
+                <div class="border-t pt-6 mt-6 border-gray-100">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i
+                            class="fas fa-lock text-indigo-500"></i>
+                        安心鎖設定</h2>
+                    <p class="text-gray-600 text-sm mb-4">
+                        啟用安心鎖後，每次開啟APP時都必須輸入密碼，並且日記被破譯難度大幅提高。
+                    </p>
+                    <div class="space-y-4" id="strict-mode-group">
+                        <!-- 嚴格模式 -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">輸入安心鎖密碼</label>
+                            <textarea type="password" id="strict-mode-password"
+                                class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="可以是文字，請盡量不要輸入生日或電話號碼"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">輸入密碼提示</label>
+                            <input type="text" id="password"
+                                class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none"
+                                placeholder="這個不會加密，也可以空白">
+                        </div>
+                        <p class="text-red-500 font-bold text-sm mb-4">
+                            注意！密碼忘記就再也找不回日記了！<br>
+                            若要關閉，請輸入密碼後按下「關閉安心鎖」按鈕。
+                        </p>
+                    </div>
+                    <button id="strict-mode-button"
+                        class="w-full bg-indigo-600 text-white py-3 mt-4 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
+                        開啟安心鎖
                     </button>
                 </div>
 
@@ -313,12 +378,12 @@
                         <div class="border-t pt-4 mt-4">
                             <label class="block text-sm font-bold text-indigo-700 mb-1">完全自訂提示詞 (將覆蓋上方所有設定)</label>
                             <textarea id="ai-setting-custom"
-                                placeholder="讓Gemini模仿你獨特的寫日記的習慣。範例一：請用一首五言絕句總結我的一天... // 範例二：以第一人稱視角撰寫，更多關注在視覺脈絡上，語氣像挖掘與探索。"
+                                placeholder="讓Gemini模仿您獨特的寫日記的習慣。範例一：請用一首五言絕句總結我的一天... // 範例二：以第一人稱視角撰寫，更多關注在視覺脈絡上，語氣像挖掘與探索。"
                                 class="w-full border p-3 rounded-lg h-24 focus:ring-2 focus:ring-indigo-300 outline-none"></textarea>
                             <p class="text-sm text-gray-400 mt-1">*此欄內容清空則使用上方選項。</p>
                         </div>
 
-                        <button onclick="saveAiSettings()"
+                        <button id="save-ai-settings-btn"
                             class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow hover:bg-indigo-700 transition">
                             儲存 AI 提示詞設定
                         </button>
@@ -348,15 +413,28 @@
                     <p class="text-gray-600 text-sm leading-relaxed mb-4 break-words overflow-hidden">
                         感謝您使用這款心情日記本！<br>
                         希望能讓您記錄生活變得更輕鬆、也更溫暖。<br>
-                        日記內容僅儲存在個人裝置上，不會上傳任何伺服器。<br><br>
+                        日記內容會簡單加密後儲存在個人裝置上，不會上傳任何伺服器，並可供離線使用。<br><br>
+                        您的隱私我很在意，但我能在程式碼中做的有限，以下安全措施請自行斟酌：<br>
+                        　1. 請勿使用您不信任來源的擴充套件。即使是擴充商店中，經過安全驗證的套件，也可能會竊取您當下網頁的隱密資料。<br>
+                        　2. 設定中有安心鎖加密模式，如果裝置與家人共用，可以打開；並且安心鎖開啟後，即使資料被竊，也無法被輕易破譯。<br>
+                        　3. gemini api key 可以於google cloud中設定允許的網域，以確保安全。<br>
+                        　　- gcloud網址：https://console.cloud.google.com/apis<br>
+                        　　- 登入後，左上角選擇您在AI studio中建立的專案。<br>
+                        　　- 選擇「憑證」->「動作」->「編輯 API 金鑰」<br>
+                        　　- 繼續在「應用程式限制」中，選擇「網站」->「add」(2次)<br>
+                        　　- 允許的網域要設定兩個，設定後要「儲存」!!<br>
+                        　　- https://qsam23175401.github.io<br>
+                        　　- https://qsam23175401.github.io/*<br><br>
                         歡迎分享並加入主畫面。<br>
-                        網址：https://qsam23175401.github.io/sharedDaily/<br><br>
+                        日記本網址：https://qsam23175401.github.io/sharedDaily/<br><br>
                         GitHub開源：https://github.com/qsam23175401/sharedDaily/<br><br>
                         Android：瀏覽器右上角 → 加入主畫面 → 安裝<br>
                         IOS：以 Safari 開啟 → 分享 → 加入主畫面<br>
                     </p>
                     <div class="text-gray-400 text-xs mt-4">
-                        Version 1.2.3
+                        Version 1.3.0<br>
+                        - 加入可選的安心鎖功能。<br>
+                        - 改以瀏覽器indexedDB儲存日記，不怕日記意外遺失。<br>
                     </div>
                 </div>
 
@@ -379,7 +457,7 @@
                             installingWorker.onstatechange = () => {
                                 if (installingWorker.state === 'installed') {
                                     if (navigator.serviceWorker.controller) {
-                                        console.log('有新的版本可用，即將自動更新...');
+                                        alert('有新的版本可用，將自動更新...\n詳請請看設定頁面');
                                     }
                                 }
                             };
@@ -399,7 +477,8 @@
             });
         }
     </script>
-    <script src="script.js" defer></script>
+    <script type="module" src="script.js"></script>
+
 </body>
 
 </html>
