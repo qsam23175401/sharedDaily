@@ -848,6 +848,7 @@ document.getElementById('filter-month').addEventListener('change', renderDiaryLi
 document.getElementById('filter-mood').addEventListener('change', renderDiaryList);
 
 async function saveStrictMode() {
+    MM4 = localStorage.getItem('strickMode') === 'true';
     if (MM4) {
         const pwdInput = document.getElementById('strict-mode-password').value;
         const hashPwdInput = await LL68B(pwdInput);
